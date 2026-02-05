@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pinterest Flexbox FYP</title>
     <style>
-        /* --- RESET & BASIC SETUP --- */
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #fff; color: #111; }
 
-        /* --- HEADER & NAV (Same as before) --- */
+
         header {
             position: sticky; top: 0; z-index: 1000; background-color: #fff;
             padding: 15px 24px; display: flex; align-items: center;
@@ -27,7 +27,7 @@
         .icon-btn { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .icon-btn:hover { background-color: #f0f0f0; }
 
-        /* --- CATEGORY PILLS --- */
+
         .category-scroll {
             position: sticky; top: 78px; z-index: 999; background: white; padding: 10px 24px;
             display: flex; gap: 10px; overflow-x: auto; white-space: nowrap;
@@ -38,31 +38,31 @@
         .pill:hover { background-color: #e1e1e1; }
         .pill.selected { background-color: #111; color: white; }
 
-        /* --- FLEXBOX MASONRY SETUP --- */
+
         .container { padding: 20px; max-width: 1600px; margin: 0 auto; }
         
-        /* The Wrapper: Flex Row */
+
         .flex-masonry {
             display: flex;
             gap: 16px;
-            align-items: flex-start; /* Prevents stretching */
+            align-items: flex-start; 
         }
 
-        /* The Columns: Flex Columns */
+
         .masonry-col {
-            flex: 1; /* Each column takes equal width */
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            min-width: 0; /* Prevents overflow issues */
+            min-width: 0; 
         }
 
-        /* --- PIN CARD STYLING --- */
+
         .pin {
             position: relative;
             cursor: zoom-in;
             border-radius: 16px;
-            overflow: hidden; /* Keeps overlay inside rounded corners */
+            overflow: hidden; 
             opacity: 0;
             animation: fadeIn 0.6s forwards;
         }
@@ -89,19 +89,15 @@
 
         .loading { text-align: center; padding: 40px; font-weight: bold; color: #888; display: none; width: 100%; }
 
-        /* --- RESPONSIVE COLUMN HIDING --- */
-        /* In Flexbox Masonry, we hide the actual column divs on smaller screens */
-        
-        /* Mobile: Show only 2 columns */
         @media (max-width: 600px) {
             .nav-links, .icon-nav { display: none; }
             #col-3, #col-4, #col-5 { display: none; } 
         }
-        /* Tablet: Show 3 columns */
+
         @media (min-width: 601px) and (max-width: 900px) {
             #col-4, #col-5 { display: none; }
         }
-        /* Laptop: Show 4 columns */
+
         @media (min-width: 901px) and (max-width: 1200px) {
             #col-5 { display: none; }
         }
@@ -156,7 +152,7 @@
         const topics = ["Cozy Room", "Neon City", "Healthy Lunch", "Abstract Paint", "Street Wear", "Forest Walk", "Modern Desk", "Vintage Car", "Coffee Art"];
         const heights = [250, 300, 350, 400, 450, 500];
 
-        // Get references to our 5 specific columns
+
         const columns = [
             document.getElementById('col-1'),
             document.getElementById('col-2'),
@@ -165,7 +161,7 @@
             document.getElementById('col-5')
         ];
 
-        let pinCounter = 0; // Used to decide which column gets the next pin
+        let pinCounter = 0; 
 
         function createPinElement() {
             const height = heights[Math.floor(Math.random() * heights.length)];
@@ -197,8 +193,7 @@
             for (let i = 0; i < count; i++) {
                 const pin = createPinElement();
                 
-                // Distribute pins using Round Robin (Col 1, then 2, then 3...)
-                // pinCounter % 5 ensures we cycle 0, 1, 2, 3, 4, 0...
+
                 const colIndex = pinCounter % 5;
                 columns[colIndex].appendChild(pin);
                 
@@ -206,10 +201,10 @@
             }
         }
 
-        // Initial Load
+
         loadPins(25);
 
-        // Infinite Scroll Logic
+
         let isLoading = false;
         const loading = document.getElementById('loading-indicator');
 
