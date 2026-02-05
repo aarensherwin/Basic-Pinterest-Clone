@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinterest Flexbox FYP</title>
+    <style>
+        /* --- RESET & BASIC SETUP --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #fff; color: #111; }
+
+        /* --- HEADER & NAV (Same as before) --- */
+        header {
+            position: sticky; top: 0; z-index: 1000; background-color: #fff;
+            padding: 15px 24px; display: flex; align-items: center;
+        }
+        .logo { color: #e60023; fill: currentColor; width: 32px; height: 32px; cursor: pointer; margin-right: 15px; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-btn { padding: 10px 16px; border-radius: 24px; font-weight: 600; cursor: pointer; text-decoration: none; color: #111; }
+        .nav-btn.active { background-color: #111; color: #fff; }
+        .nav-btn:hover:not(.active) { background-color: #f0f0f0; }
+        .search-bar { flex-grow: 1; margin: 0 15px; position: relative; }
+        .search-bar input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 24px; border: none; background-color: #e9e9e9; font-size: 16px; outline: none; }
+        .search-bar input:focus { background-color: #fff; box-shadow: 0 0 0 4px rgba(0, 132, 255, 0.5); }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; opacity: 0.5; }
+        .icon-nav { display: flex; gap: 10px; }
+        .icon-btn { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .icon-btn:hover { background-color: #f0f0f0; }
+
+        /* --- CATEGORY PILLS --- */
+        .category-scroll {
+            position: sticky; top: 78px; z-index: 999; background: white; padding: 10px 24px;
+            display: flex; gap: 10px; overflow-x: auto; white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .pill { padding: 8px 16px; background-color: #f0f0f0; border-radius: 20px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .pill:hover { background-color: #e1e1e1; }
+        .pill.selected { background-color: #111; color: white; }
+
+        /* --- FLEXBOX MASONRY SETUP --- */
+        .container { padding: 20px; max-width: 1600px; margin: 0 auto; }
+        
+        /* The Wrapper: Flex Row */
+        .flex-masonry {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start; /* Prevents stretching */
+        }
+
+        /* The Columns: Flex Columns */
+        .masonry-col {
+            flex: 1; /* Each column takes equal width */
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0; /* Prevents overflow issues */
+        }
+
+        /* --- PIN CARD STYLING --- */
+        .pin {
+            position: relative;
+            cursor: zoom-in;
+            border-radius: 16px;
+            overflow: hidden; /* Keeps overlay inside rounded corners */
+            opacity: 0;
+            animation: fadeIn 0.6s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .pin img { width: 100%; display: block; height: auto; }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); opacity: 0; transition: opacity 0.2s;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 12px;
+        }
+        .pin:hover .overlay { opacity: 1; }
+
+        .save-btn { background-color: #e60023; color: white; border: none; padding: 12px 18px; border-radius: 24px; font-weight: 700; cursor: pointer; align-self: flex-end; }
+        .save-btn:hover { background-color: #ad081b; }
+        
+        .pin-icons { display: flex; gap: 8px; align-self: flex-end; }
+        .icon-sm { background-color: rgba(255,255,255,0.8); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .icon-sm:hover { background-color: white; }
+        
+        .pin-info { padding: 5px 5px 0 5px; }
+        .pin-title { font-size: 14px; font-weight: 600; }
+
+        .loading { text-align: center; padding: 40px; font-weight: bold; color: #888; display: none; width: 100%; }
+
+        /* --- RESPONSIVE COLUMN HIDING --- */
+        /* In Flexbox Masonry, we hide the actual column divs on smaller screens */
+        
+        /* Mobile: Show only 2 columns */
+        @media (max-width: 600px) {
+            .nav-links, .icon-nav { display: none; }
+            #col-3, #col-4, #col-5 { display: none; } 
+        }
+        /* Tablet: Show 3 columns */
+        @media (min-width: 601px) and (max-width: 900px) {
+            #col-4, #col-5 { display: none; }
+        }
+        /* Laptop: Show 4 columns */
+        @media (min-width: 901px) and (max-width: 1200px) {
+            #col-5 { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <svg class="logo" viewBox="0 0 24 24"><path d="M0 12c0 5.123 3.211 9.497 7.73 11.218-.11-.937-.227-2.482.025-3.566.217-.932 1.401-5.938 1.401-5.938s-.357-.715-.357-1.774c0-1.66.962-2.9 2.161-2.9 1.02 0 1.512.765 1.512 1.682 0 1.025-.653 2.567-.99 3.995-.283 1.195.599 2.174 1.78 2.174 2.137 0 3.797-2.254 3.797-5.511 0-2.879-2.067-4.883-5.013-4.883-3.653 0-5.801 2.731-5.801 5.551 0 1.099.423 2.274.953 2.911.105.126.12.235.089.423-.095.401-.305 1.229-.347 1.401-.053.224-.176.271-.405.163-1.514-.705-2.46-2.914-2.46-4.689 0-3.812 2.771-7.317 7.992-7.317 4.197 0 7.456 2.99 7.456 6.983 0 4.167-2.613 7.527-6.242 7.527-1.22 0-2.368-.633-2.761-1.379l-.75 2.854c-.272 1.043-1.011 2.349-1.506 3.146 1.132.347 2.329.536 3.571.536 6.627 0 12-5.373 12-12C24 5.373 18.627 0 12 0S0 5.373 0 12"></path></svg>
+        <nav class="nav-links">
+            <a href="#" class="nav-btn active">Home</a>
+            <a href="#" class="nav-btn">Explore</a>
+            <a href="#" class="nav-btn">Create</a>
+        </nav>
+        <div class="search-bar">
+            <div class="search-icon">🔍</div>
+            <input type="text" placeholder="Search">
+        </div>
+        <div class="icon-nav">
+            <div class="icon-btn">🔔</div>
+            <div class="icon-btn">💬</div>
+            <div class="icon-btn" style="background: #e9e9e9; font-weight:bold;">J</div>
+        </div>
+    </header>
+
+    <div class="category-scroll">
+        <div class="pill selected">For you</div>
+        <div class="pill">Design</div>
+        <div class="pill">Fashion</div>
+        <div class="pill">Food</div>
+        <div class="pill">Travel</div>
+        <div class="pill">Art</div>
+        <div class="pill">Gaming</div>
+        <div class="pill">Tech</div>
+        <div class="pill">Music</div>
+        <div class="pill">Nature</div>
+    </div>
+
+    <main class="container">
+        <div class="flex-masonry" id="masonry-wrapper">
+            <div class="masonry-col" id="col-1"></div>
+            <div class="masonry-col" id="col-2"></div>
+            <div class="masonry-col" id="col-3"></div>
+            <div class="masonry-col" id="col-4"></div>
+            <div class="masonry-col" id="col-5"></div>
+        </div>
+
+        <div class="loading" id="loading-indicator">Loading more pins...</div>
+    </main>
+
+    <script>
+        const topics = ["Cozy Room", "Neon City", "Healthy Lunch", "Abstract Paint", "Street Wear", "Forest Walk", "Modern Desk", "Vintage Car", "Coffee Art"];
+        const heights = [250, 300, 350, 400, 450, 500];
+
+        // Get references to our 5 specific columns
+        const columns = [
+            document.getElementById('col-1'),
+            document.getElementById('col-2'),
+            document.getElementById('col-3'),
+            document.getElementById('col-4'),
+            document.getElementById('col-5')
+        ];
+
+        let pinCounter = 0; // Used to decide which column gets the next pin
+
+        function createPinElement() {
+            const height = heights[Math.floor(Math.random() * heights.length)];
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const randomId = Math.floor(Math.random() * 5000) + pinCounter;
+
+            const pin = document.createElement('div');
+            pin.classList.add('pin');
+
+            pin.innerHTML = `
+                <div style="position: relative;">
+                    <img src="https://picsum.photos/236/${height}?random=${randomId}" alt="${topic}">
+                    <div class="overlay">
+                        <button class="save-btn">Save</button>
+                        <div class="pin-icons">
+                            <div class="icon-sm">↗</div>
+                            <div class="icon-sm">⋯</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pin-info">
+                    <div class="pin-title">${topic}</div>
+                </div>
+            `;
+            return pin;
+        }
+
+        function loadPins(count) {
+            for (let i = 0; i < count; i++) {
+                const pin = createPinElement();
+                
+                // Distribute pins using Round Robin (Col 1, then 2, then 3...)
+                // pinCounter % 5 ensures we cycle 0, 1, 2, 3, 4, 0...
+                const colIndex = pinCounter % 5;
+                columns[colIndex].appendChild(pin);
+                
+                pinCounter++;
+            }
+        }
+
+        // Initial Load
+        loadPins(25);
+
+        // Infinite Scroll Logic
+        let isLoading = false;
+        const loading = document.getElementById('loading-indicator');
+
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && !isLoading) {
+                isLoading = true;
+                loading.style.display = 'block';
+                setTimeout(() => {
+                    loadPins(10);
+                    loading.style.display = 'none';
+                    isLoading = false;
+                }, 800);
+            }
+        });
+    </script>
+</body>
+</html>
